@@ -14,6 +14,7 @@ import org.cef.callback.CefDownloadItemCallback;
 import org.cef.callback.CefDragData;
 import org.cef.callback.CefFileDialogCallback;
 import org.cef.callback.CefJSDialogCallback;
+import org.cef.callback.CefMediaAccessCallback;
 import org.cef.callback.CefMenuModel;
 import org.cef.callback.CefPrintDialogCallback;
 import org.cef.callback.CefPrintJobCallback;
@@ -35,6 +36,7 @@ import org.cef.handler.CefResourceHandler;
 import org.cef.handler.CefResourceRequestHandler;
 import org.cef.handler.CefScreenInfo;
 import org.cef.handler.CefWindowHandler;
+import org.cef.handler.CefPermissionHandler;
 import org.cef.misc.BoolRef;
 import org.cef.misc.CefPrintSettings;
 import org.cef.misc.StringRef;
@@ -67,7 +69,7 @@ public class CefClient extends CefClientHandler
         implements CefContextMenuHandler, CefDialogHandler, CefDisplayHandler, CefDownloadHandler,
                    CefDragHandler, CefFocusHandler, CefJSDialogHandler, CefKeyboardHandler,
                    CefLifeSpanHandler, CefLoadHandler, CefPrintHandler, CefRenderHandler,
-                   CefRequestHandler, CefWindowHandler {
+                   CefRequestHandler, CefWindowHandler, CefPermissionHandler {
     private HashMap<Integer, CefBrowser> browser_ = new HashMap<Integer, CefBrowser>();
     private CefContextMenuHandler contextMenuHandler_ = null;
     private CefDialogHandler dialogHandler_ = null;
@@ -75,6 +77,7 @@ public class CefClient extends CefClientHandler
     private CefDownloadHandler downloadHandler_ = null;
     private CefDragHandler dragHandler_ = null;
     private CefFocusHandler focusHandler_ = null;
+    private CefPermissionHandler permissionHandler_ = null;
     private CefJSDialogHandler jsDialogHandler_ = null;
     private CefKeyboardHandler keyboardHandler_ = null;
     private CefLifeSpanHandler lifeSpanHandler_ = null;
@@ -457,6 +460,30 @@ public class CefClient extends CefClientHandler
         focusedBrowser_ = browser;
         browser.setFocus(true);
         if (focusHandler_ != null) focusHandler_.onGotFocus(browser);
+    }
+
+    // CefPermissionHandler
+
+    public CefClient addPermissionHandler(CefPermissionHandler handler) {
+        if (permissionHandler_ == null) permissionHandler_ = handler;
+        return this;
+    }
+
+    public void removePermissionHandler() {
+        permissionHandler_ = null;
+    }
+
+    @Override
+    public boolean onRequestMediaAccessPermission(
+            CefBrowser browser,
+            CefFrame frame,
+            String requesting_url,
+            int requested_permissions,
+            CefMediaAccessCallback callback) {
+        if (permissionHandler_ != null && browser != null)
+            return permissionHandler_.onRequestMediaAccessPermission(browser, frame, requesting_url,
+                    requested_permissions, callback);
+        return false;
     }
 
     // CefJSDialogHandler
